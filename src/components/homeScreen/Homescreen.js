@@ -20,6 +20,7 @@ function Homescreen() {
       .then((fetchedData) => {
         setLaunchDetails([...launchDetails, ...fetchedData]);
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, offset]);
 
   const scrollToEnd = () => {
@@ -36,7 +37,7 @@ function Homescreen() {
     );
     if (
       window.innerHeight + document.documentElement.scrollTop ===
-      document.documentElement.offsetHeight
+      document.documentElement.scrollHeight
     ) {
       console.log("hello");
       scrollToEnd();
@@ -48,14 +49,14 @@ function Homescreen() {
     event.preventDefault();
     let params = sort;
     if (sort === "asc") {
-      fetch(`https://api.spacexdata.com/v3/launches?order=asc&limit=${limit}`)
+      fetch(`https://api.spacexdata.com/v3/launches?order=asc&limit=${limit}&offset=${offset}`)
         .then((res) => res.json())
         .then((fetchedData) => {
           setLaunchDetails(fetchedData);
           setSearchParams({ order: params });
         });
     } else if (sort === "desc") {
-      fetch(`https://api.spacexdata.com/v3/launches?order=desc&limit=${limit}`)
+      fetch(`https://api.spacexdata.com/v3/launches?order=desc&limit=${limit}&offset=${offset}`)
         .then((res) => res.json())
         .then((fetchedData) => {
           setLaunchDetails(fetchedData);
@@ -88,19 +89,18 @@ function Homescreen() {
                 <option value="desc">Desc</option>
               </select>
             </span>
-            <span>
-              <Button submit primary>
+            <span className="actions__cta">
+              <Button submit>
                 Submit
               </Button>
             </span>
           </form>
           <div className="actions__launch-count">
-            Total Results:{launchDetails.length}
+            <i>Total Results:{launchDetails.length}</i>
           </div>
         </div>
       </section>
       {/* section for displaying the data fetched from api */}
-
       <section className="card-wrapper">
         {launchDetails.map((item, index) => {
           return (
@@ -115,7 +115,7 @@ function Homescreen() {
                   alt="link_img"
                   className="card__image"
                 />
-                <h2>{item.mission_name}</h2>
+                <h2 className="card__title">{item.mission_name}</h2>
                 <p>{item.details}</p>
               </div>
 

@@ -6,9 +6,9 @@ import { Button } from "@shopify/polaris";
 function Homescreen() {
   const [launchDetails, setLaunchDetails] = useState([]);
   const [sort, setSort] = useState("asc");
+  // eslint-disable-next-line no-unused-vars
   const [limit, setLimit] = useState(9);
   const [offset, setOffset] = useState(0);
-  const [isFetching, setIsFetching] = useState(false);
   // eslint-disable-next-line no-unused-vars
   let [searchParams, setSearchParams] = useSearchParams();
   // api Call
@@ -18,38 +18,44 @@ function Homescreen() {
     )
       .then((res) => res.json())
       .then((fetchedData) => {
-        setLaunchDetails(fetchedData);
+        setLaunchDetails([...launchDetails, ...fetchedData]);
       });
   }, [limit, offset]);
 
-  function handleScroll() {
-    if (
-      window.innerHeight + document.documentElement.scrollTop !==
+  const scrollToEnd = () => {
+    setOffset(offset + 9);
+  };
+
+  window.onscroll = function () {
+    console.log(
+      document.documentElement.scrollTop,
+      " ",
+      window.innerHeight,
+      " ",
       document.documentElement.offsetHeight
-    )
-      return;
+    );
+    if (
+      window.innerHeight + document.documentElement.scrollTop ===
+      document.documentElement.offsetHeight
+    ) {
       console.log("hello");
-    setIsFetching(true);
-  }
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+      scrollToEnd();
+      return;
+    }
+  };
   // sorting the items
   const handleSubmit = (event) => {
     event.preventDefault();
     let params = sort;
     if (sort === "asc") {
-      fetch(`https://api.spacexdata.com/v3/launches?order=asc`)
+      fetch(`https://api.spacexdata.com/v3/launches?order=asc&limit=${limit}`)
         .then((res) => res.json())
         .then((fetchedData) => {
           setLaunchDetails(fetchedData);
           setSearchParams({ order: params });
         });
     } else if (sort === "desc") {
-      fetch(`https://api.spacexdata.com/v3/launches?order=desc`)
+      fetch(`https://api.spacexdata.com/v3/launches?order=desc&limit=${limit}`)
         .then((res) => res.json())
         .then((fetchedData) => {
           setLaunchDetails(fetchedData);
@@ -57,6 +63,12 @@ function Homescreen() {
         });
     }
   };
+
+  // last launch -> ref
+  // check when is the element visible on screen
+  // once visible increment offset
+  // change in offset triggers the request
+
   return (
     <>
       {/* section for select and cta */}
@@ -88,6 +100,7 @@ function Homescreen() {
         </div>
       </section>
       {/* section for displaying the data fetched from api */}
+
       <section className="card-wrapper">
         {launchDetails.map((item, index) => {
           return (
@@ -113,11 +126,6 @@ function Homescreen() {
             </Link>
           );
         })}
-        {isFetching && (
-          <div className="loader">
-            <h4>loading</h4>
-          </div>
-        )}
       </section>
     </>
   );

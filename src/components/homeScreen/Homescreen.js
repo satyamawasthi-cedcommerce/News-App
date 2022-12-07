@@ -1,52 +1,61 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import "./Homescreen.css";
 import moment from "moment";
 import { Button } from "@shopify/polaris";
 function Homescreen() {
   const [launchDetails, setLaunchDetails] = useState([]);
-  const [sort, setSort] = useState("");
+  const [sort, setSort] = useState("asc");
+  const [limit, setLimit] = useState(9);
+  const [offset, setOffset] = useState(0);
+  const [isFetching, setIsFetching] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  let [searchParams, setSearchParams] = useSearchParams();
   // api Call
   useEffect(() => {
-    fetch(`https://api.spacexdata.com/v3/launches`)
+    fetch(
+      `https://api.spacexdata.com/v3/launches?limit=${limit}&offset=${offset}`
+    )
       .then((res) => res.json())
       .then((fetchedData) => {
         setLaunchDetails(fetchedData);
-        console.log(fetchedData);
       });
+  }, [limit, offset]);
+
+  function handleScroll() {
+    if (
+      window.innerHeight + document.documentElement.scrollTop !==
+      document.documentElement.offsetHeight
+    )
+      return;
+      console.log("hello");
+    setIsFetching(true);
+  }
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
   // sorting the items
   const handleSubmit = (event) => {
     event.preventDefault();
-    const misc = launchDetails;
+    let params = sort;
     if (sort === "asc") {
-      misc.sort((a, b) => {
-        const miscA = a.mission_name.toUpperCase();
-        const miscB = b.mission_name.toUpperCase();
-        if (miscA < miscB) {
-          return -1;
-        }
-        if (miscA > miscB) {
-          return 1;
-        }
-        return 0;
-      });
+      fetch(`https://api.spacexdata.com/v3/launches?order=asc`)
+        .then((res) => res.json())
+        .then((fetchedData) => {
+          setLaunchDetails(fetchedData);
+          setSearchParams({ order: params });
+        });
     } else if (sort === "desc") {
-      misc.sort((a, b) => {
-        const miscA = a.mission_name.toUpperCase();
-        const miscB = b.mission_name.toUpperCase();
-        if (miscA > miscB) {
-          return -1;
-        }
-        if (miscA < miscB) {
-          return 1;
-        }
-        return 0;
-      });
+      fetch(`https://api.spacexdata.com/v3/launches?order=desc`)
+        .then((res) => res.json())
+        .then((fetchedData) => {
+          setLaunchDetails(fetchedData);
+          setSearchParams({ order: params });
+        });
     }
-
-    setLaunchDetails([...misc]);
-    console.log(misc);
   };
   return (
     <>
@@ -63,13 +72,11 @@ function Homescreen() {
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
               >
-                <option value="none">--select--</option>
                 <option value="asc">Asc</option>
                 <option value="desc">Desc</option>
               </select>
             </span>
             <span>
-              {/* <input type="submit" value="Submit" className="actions__cta" /> */}
               <Button submit primary>
                 Submit
               </Button>
@@ -84,7 +91,11 @@ function Homescreen() {
       <section className="card-wrapper">
         {launchDetails.map((item, index) => {
           return (
-            <Link to={`/individual/${index}`} className="card" key={index}>
+            <Link
+              to={`/individual/${item.flight_number}`}
+              className="card"
+              key={index}
+            >
               <div className="card__details">
                 <img
                   src={item.links.mission_patch}
@@ -102,6 +113,11 @@ function Homescreen() {
             </Link>
           );
         })}
+        {isFetching && (
+          <div className="loader">
+            <h4>loading</h4>
+          </div>
+        )}
       </section>
     </>
   );

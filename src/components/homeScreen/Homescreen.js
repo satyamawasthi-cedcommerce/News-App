@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import "./Homescreen.css";
 import moment from "moment";
-import { Button } from "@shopify/polaris";
+import { Button, Spinner } from "@shopify/polaris";
 function Homescreen() {
   const [launchDetails, setLaunchDetails] = useState([]);
   const [sort, setSort] = useState("asc");
+  const [isLoading, setIsLoading] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [limit, setLimit] = useState(9);
   const [offset, setOffset] = useState(0);
@@ -13,14 +14,16 @@ function Homescreen() {
   let [searchParams, setSearchParams] = useSearchParams();
   // api Call
   useEffect(() => {
+    setIsLoading(true);
     fetch(
       `https://api.spacexdata.com/v3/launches?limit=${limit}&offset=${offset}`
     )
       .then((res) => res.json())
       .then((fetchedData) => {
         setLaunchDetails([...launchDetails, ...fetchedData]);
+        setIsLoading(false);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, offset]);
 
   const scrollToEnd = () => {
@@ -28,18 +31,10 @@ function Homescreen() {
   };
 
   window.onscroll = function () {
-    console.log(
-      document.documentElement.scrollTop,
-      " ",
-      window.innerHeight,
-      " ",
-      document.documentElement.offsetHeight
-    );
     if (
       window.innerHeight + document.documentElement.scrollTop ===
       document.documentElement.scrollHeight
     ) {
-      console.log("hello");
       scrollToEnd();
       return;
     }
@@ -49,14 +44,18 @@ function Homescreen() {
     event.preventDefault();
     let params = sort;
     if (sort === "asc") {
-      fetch(`https://api.spacexdata.com/v3/launches?order=asc&limit=${limit}&offset=${offset}`)
+      fetch(
+        `https://api.spacexdata.com/v3/launches?order=asc&limit=${limit}&offset=${offset}`
+      )
         .then((res) => res.json())
         .then((fetchedData) => {
           setLaunchDetails(fetchedData);
           setSearchParams({ order: params });
         });
     } else if (sort === "desc") {
-      fetch(`https://api.spacexdata.com/v3/launches?order=desc&limit=${limit}&offset=${offset}`)
+      fetch(
+        `https://api.spacexdata.com/v3/launches?order=desc&limit=${limit}&offset=${offset}`
+      )
         .then((res) => res.json())
         .then((fetchedData) => {
           setLaunchDetails(fetchedData);
@@ -64,14 +63,8 @@ function Homescreen() {
         });
     }
   };
-
-  // last launch -> ref
-  // check when is the element visible on screen
-  // once visible increment offset
-  // change in offset triggers the request
-
   return (
-    <>
+    <div className="container">
       {/* section for select and cta */}
       <section className="actions-wrapper">
         <div className="actions">
@@ -90,9 +83,7 @@ function Homescreen() {
               </select>
             </span>
             <span className="actions__cta">
-              <Button submit>
-                Submit
-              </Button>
+              <Button submit>Submit</Button>
             </span>
           </form>
           <div className="actions__launch-count">
@@ -127,7 +118,10 @@ function Homescreen() {
           );
         })}
       </section>
-    </>
+      <span className="loaderIndicator">
+        {isLoading ? <Spinner size="large" /> : <></>}
+      </span>
+    </div>
   );
 }
 

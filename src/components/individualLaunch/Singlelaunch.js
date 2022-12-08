@@ -10,7 +10,6 @@ function Singlelaunch() {
       .then((res) => res.json())
       .then((fetchedData) => {
         setIndividualDetails(fetchedData);
-        console.log(fetchedData);
       });
   }, [id]);
   return (

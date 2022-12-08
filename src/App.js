@@ -4,7 +4,6 @@ import "./App.css";
 import "@shopify/polaris/build/esm/styles.css";
 import Singlelaunch from "./components/individualLaunch/Singlelaunch";
 const LazyHome = React.lazy(() => import("./components/homeScreen/Homescreen"));
-
 function App() {
   return (
     <div className="App">

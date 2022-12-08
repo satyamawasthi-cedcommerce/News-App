@@ -14,7 +14,7 @@ function Homescreen() {
   const [offset, setOffset] = useState(0);
   // eslint-disable-next-line no-unused-vars
   let [searchParams, setSearchParams] = useSearchParams();
-  const { data, status } = useQuery(["limit=9",{offset}], fetchLaunches);
+  const { data, status } = useQuery([9,offset], fetchLaunches);
   console.log(data);
   const scrollToEnd = () => {
     setOffset(offset + 9);

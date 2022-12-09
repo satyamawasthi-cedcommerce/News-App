@@ -3,12 +3,13 @@ import "./Singlelaunch.css";
 import moment from "moment";
 import { useQuery } from "react-query";
 import { fetchLaunches } from "../../queryHook";
+import { Spinner } from "@shopify/polaris";
 function Singlelaunch() {
   const { id } = useParams();
   const { data, status } = useQuery(id, fetchLaunches);
   return (
     <section className="single-card-wrapper">
-      {status === "loading" && <p>Loading....</p>}
+      {status === "loading" && <span className="loading"><Spinner size="large"/></span>}
       {status === "error" && (
         <>
           <p>Error</p>

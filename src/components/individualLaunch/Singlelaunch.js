@@ -1,33 +1,30 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "./Singlelaunch.css";
 import moment from "moment";
+import { useQuery } from "react-query";
+import { fetchLaunches } from "../../queryHook";
 function Singlelaunch() {
   const { id } = useParams();
-  const [individualDetails, setIndividualDetails] = useState({});
-  useEffect(() => {
-    fetch(`https://api.spacexdata.com/v3/launches/${id}`)
-      .then((res) => res.json())
-      .then((fetchedData) => {
-        setIndividualDetails(fetchedData);
-      });
-  }, [id]);
+  const { data, status } = useQuery(id, fetchLaunches);
   return (
     <section className="single-card-wrapper">
-      <div className="single-card">
-        <h3>{individualDetails?.mission_name}</h3>
-        <img
-          src={individualDetails?.links?.mission_patch}
-          alt="flight_launch"
-        />
-        <p>{individualDetails?.details}</p>
-        <div className="single-card__launch-details">
-          <p>
-            {moment(individualDetails?.launch_date_local).format("MMMM D,YYYY")}
-          </p>
-          <a href="/#">#{individualDetails?.launch_site?.site_name}</a>
+      {status === "loading" && <p>Loading....</p>}
+      {status === "error" && (
+        <>
+          <p>Error</p>
+        </>
+      )}
+      {status === "success" && (
+        <div className="single-card">
+          <h3>{data?.mission_name}</h3>
+          <img src={data?.links?.mission_patch} alt="flight_launch" />
+          <p>{data?.details}</p>
+          <div className="single-card__launch-details">
+            <p>{moment(data?.launch_date_local).format("MMMM D,YYYY")}</p>
+            <a href="/#">#{data?.launch_site?.site_name}</a>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

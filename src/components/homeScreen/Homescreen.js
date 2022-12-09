@@ -6,19 +6,31 @@ import { Button, Spinner } from "@shopify/polaris";
 import { useQuery } from "react-query";
 import { fetchLaunches } from "../../queryHook";
 function Homescreen() {
-  const [launchDetails, setLaunchDetails] = useState([]);
   const [sort, setSort] = useState("asc");
+  const [order,setOrder] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [newData , setNewData] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [limit, setLimit] = useState(9);
   const [offset, setOffset] = useState(0);
   // eslint-disable-next-line no-unused-vars
   let [searchParams, setSearchParams] = useSearchParams();
-  const { data, status } = useQuery([9,offset], fetchLaunches);
+  const { data, status } = useQuery([limit,offset,order], fetchLaunches);
   console.log(data);
+
   const scrollToEnd = () => {
     setOffset(offset + 9);
   };
+console.log(data);
+  useEffect(() => {
+    if(data)
+    setNewData([...newData,...data]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[data])
+
+  useEffect(()=>{
+    setNewData([]);
+  },[sort])
 
   window.onscroll = function () {
     if (
@@ -30,28 +42,12 @@ function Homescreen() {
   };
   // sorting the items
   const handleSubmit = (event) => {
-    event.preventDefault();
+    event?.preventDefault();
     let params = sort;
-    if (sort === "asc") {
-      fetch(
-        `https://api.spacexdata.com/v3/launches?order=asc&limit=${limit}&offset=${offset}`
-      )
-        .then((res) => res.json())
-        .then((fetchedData) => {
-          setLaunchDetails(fetchedData);
+    setOrder(sort)
           setSearchParams({ order: params });
-        });
-    } else if (sort === "desc") {
-      fetch(
-        `https://api.spacexdata.com/v3/launches?order=desc&limit=${limit}&offset=${offset}`
-      )
-        .then((res) => res.json())
-        .then((fetchedData) => {
-          setLaunchDetails(fetchedData);
-          setSearchParams({ order: params });
-        });
-    }
   };
+  
   return (
     <div className="container">
       {/* section for select and cta */}
@@ -76,7 +72,7 @@ function Homescreen() {
             </span>
           </form>
           <div className="actions__launch-count">
-            <i>Total Results:{data?.length}</i>
+            <i>Total Results:{newData?.length}</i>
           </div>
         </div>
       </section>
@@ -94,7 +90,7 @@ function Homescreen() {
         )}
         {status === "success" && (
           <>
-            {data?.map((item, index) => {
+            {newData?.map((item, index) => {
               return (
                 <Link
                   to={`/individual/${item.flight_number}`}
